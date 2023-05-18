@@ -1,0 +1,1 @@
+# Forex market RSI indicators
