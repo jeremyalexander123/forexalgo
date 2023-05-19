@@ -31,16 +31,25 @@ def previous_24hrs():
 
     def is_dst(dt,timeZone):
        
+       '''
+       determine if it's daylight savings or not
+       '''
+       
        aware_dt = timeZone.localize(dt)
 
        return aware_dt.dst() != datetime.timedelta(0,0)
 
+    # get timezone
     timeZone = pytz.timezone('Australia/Melbourne')
 
+    # current datetime
     my_date = datetime.datetime.now()
+
+    # is it daylight savings time
     daylight_savings = is_dst(my_date,timeZone)
 
-
+    # if not daylight savings time, subtract 24hrs. 
+    # if it is dalight savings time, subtract 25hrs. (is this required?)
     if daylight_savings == False:
 
         prev_24hrs = my_date - datetime.timedelta(hours = 24, minutes = 0)
