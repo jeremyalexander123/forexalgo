@@ -28,7 +28,7 @@ np.set_printoptions(precision = 5)
 #date = datetime.today().strftime('%Y-%m-%d')
 my_date = datetime.datetime.now(pytz.timezone('Etc/GMT-12'))
 prev_12hrs = datetime.datetime.now(pytz.timezone('Etc/GMT+12'))
-prev_24hrs = my_date - datetime.timedelta(hours = 25, minutes = 0)
+prev_24hrs = my_date - datetime.timedelta(hours = 24, minutes = 0)
 
 print(my_date)
 print(prev_24hrs)
