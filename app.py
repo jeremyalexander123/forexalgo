@@ -19,28 +19,43 @@ from scipy.signal import argrelextrema
 from collections import deque
 from functools import reduce
 
-
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 np.set_printoptions(precision = 5)
 
-# current date
-#date = datetime.today().strftime('%Y-%m-%d')
-my_date = datetime.datetime.now(pytz.timezone('Etc/GMT-12'))
-prev_12hrs = datetime.datetime.now(pytz.timezone('Etc/GMT+12'))
-prev_24hrs = my_date - datetime.timedelta(hours = 24, minutes = 0)
+def previous_24hrs():
+   
+    '''
+    Return previous 24hr time period determined by daylight savings time
+    '''
 
-print(my_date)
-print(prev_24hrs)
+    def is_dst(dt,timeZone):
+       
+       aware_dt = timeZone.localize(dt)
 
-#my_date = datetime.datetime.now() 
-#prev_24hrs = my_date - datetime.timedelta(hours = 24, minutes = 0)
+       return aware_dt.dst() != datetime.timedelta(0,0)
+
+    timeZone = pytz.timezone('Australia/Melbourne')
+
+    my_date = datetime.datetime.now()
+    daylight_savings = is_dst(my_date,timeZone)
 
 
-#print(my_date)
-#print(prev_24hrs)
+    if daylight_savings == False:
 
-#print(datetime.datetime.now())
+        prev_24hrs = my_date - datetime.timedelta(hours = 24, minutes = 0)
+
+    else:
+
+        prev_24hrs = my_date - datetime.timedelta(hours = 25, minutes = 0)
+
+    return prev_24hrs
+
+
+prev_24hrs = previous_24hrs()
+
+
+
 
 def data_metrics(ticker, start_date, end_date, interval):
         
@@ -110,7 +125,7 @@ def data_metrics(ticker, start_date, end_date, interval):
 
 
 #df_out = data_metrics('EURUSD=X', '2022-10-06', '2022-10-07', '5m')
-df_out = data_metrics('EURUSD=X', prev_24hrs, my_date, '5m')
+#df_out = data_metrics('EURUSD=X', prev_24hrs, my_date, '5m')
 
 #print(df_out[0:60])
 
@@ -205,15 +220,15 @@ def getLowerHighs(data, order = 1, K = 2):
 
 
 # Get higher highs, lower lows, etc.
-order = 12
-hh_pr = getHigherHighs(df_out['Close'].values, order)
-lh_pr = getLowerHighs(df_out['Close'].values, order)
+#order = 12
+#hh_pr = getHigherHighs(df_out['Close'].values, order)
+#lh_pr = getLowerHighs(df_out['Close'].values, order)
 #ll_pr = getLowerLows(price, order)
 #hl_pr = getHigherLows(price, order)
 
 
-hh_rsi = getHigherHighs(df_out['5m_RSI'].values, order)
-lh_rsi = getLowerHighs(df_out['5m_RSI'].values, order)
+#hh_rsi = getHigherHighs(df_out['5m_RSI'].values, order)
+#lh_rsi = getLowerHighs(df_out['5m_RSI'].values, order)
 #ll = getLowerLows(price, order)
 #hl = getHigherLows(price, order)
 
@@ -225,30 +240,30 @@ lh_rsi = getLowerHighs(df_out['5m_RSI'].values, order)
 #print(df_out[120:180])
 
 
-hh_pr_df = pd.DataFrame([i[1] for i in hh_pr])
-hh_pr_df['Price_Action'] = 'HH_Price'
-hh_pr_df = hh_pr_df.set_index(0)
+#hh_pr_df = pd.DataFrame([i[1] for i in hh_pr])
+#hh_pr_df['Price_Action'] = 'HH_Price'
+#hh_pr_df = hh_pr_df.set_index(0)
 
-lh_pr_df = pd.DataFrame([i[1] for i in lh_pr])
-lh_pr_df['Price_Action'] = 'LH_Price'
-lh_pr_df = lh_pr_df.set_index(0)
-
-
-pr_df = pd.concat([hh_pr_df, lh_pr_df]).sort_index()
-pr_df = pr_df[~pr_df.index.duplicated(keep='first')]
+#lh_pr_df = pd.DataFrame([i[1] for i in lh_pr])
+#lh_pr_df['Price_Action'] = 'LH_Price'
+#lh_pr_df = lh_pr_df.set_index(0)
 
 
-hh_rsi_df = pd.DataFrame([i[1] for i in hh_rsi])
-hh_rsi_df['RSI_Action'] = 'HH_RSI'
-hh_rsi_df = hh_rsi_df.set_index(0)
-
-lh_rsi_df = pd.DataFrame([i[1] for i in lh_rsi])
-lh_rsi_df['RSI_Action'] = 'LH_RSI'
-lh_rsi_df = lh_rsi_df.set_index(0)
+#pr_df = pd.concat([hh_pr_df, lh_pr_df]).sort_index()
+#pr_df = pr_df[~pr_df.index.duplicated(keep='first')]
 
 
-rsi_df = pd.concat([hh_rsi_df, lh_rsi_df]).sort_index()
-rsi_df = rsi_df[~rsi_df.index.duplicated(keep='first')]
+#hh_rsi_df = pd.DataFrame([i[1] for i in hh_rsi])
+#hh_rsi_df['RSI_Action'] = 'HH_RSI'
+#hh_rsi_df = hh_rsi_df.set_index(0)
+
+#lh_rsi_df = pd.DataFrame([i[1] for i in lh_rsi])
+#lh_rsi_df['RSI_Action'] = 'LH_RSI'
+#lh_rsi_df = lh_rsi_df.set_index(0)
+
+
+#rsi_df = pd.concat([hh_rsi_df, lh_rsi_df]).sort_index()
+#rsi_df = rsi_df[~rsi_df.index.duplicated(keep='first')]
 
 #print(pr_df)
 
@@ -260,13 +275,13 @@ rsi_df = rsi_df[~rsi_df.index.duplicated(keep='first')]
 
 #print(df_out[250:])
 
-pdList = [df_out, pr_df, rsi_df] 
-new_df = pd.concat(pdList, axis = 1)
+#pdList = [df_out, pr_df, rsi_df] 
+#new_df = pd.concat(pdList, axis = 1)
 
 
 
-print(new_df[0:60])
-print(new_df[60:120])
+#print(new_df[0:60])
+#print(new_df[60:120])
 
 
 
@@ -291,8 +306,8 @@ def plot():
     #dates = df_out.index
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
     
-    print(price)
-    print(rsi)
+    #print(price)
+    #print(rsi)
 
 
     sns.lineplot(data = df_out,
@@ -340,18 +355,18 @@ def plot():
     
     #plt.scatter(dates[hh_idx], price[hh_idx-order], marker = '^', c = 'blue')
 
-plot()
+#plot()
 
 
 
-import pandas as pd
-import requests
+#import pandas as pd
+#import requests
 
 
-response = requests.get('https://api.covid19api.com/summary')
-covid_data = pd.json_normalize(response.json())
+#response = requests.get('https://api.covid19api.com/summary')
+#covid_data = pd.json_normalize(response.json())
 
-google_password = 'ategvrxmlaurbqgj'
+#google_password = 'ategvrxmlaurbqgj'
 
 
 def send_tradeNotification(send_to, subject, df):
