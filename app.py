@@ -5,6 +5,7 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import seaborn as sns
 import datetime
+from datetime import timedelta
 import pytz
 import schedule
 import time
@@ -32,7 +33,7 @@ def previous_24hrs():
     def is_dst(dt,timeZone):
        
        '''
-       determine if it's daylight savings or not
+       Determine if it's daylight savings or not
        '''
        
        aware_dt = timeZone.localize(dt)
@@ -60,16 +61,23 @@ def previous_24hrs():
 
     return prev_24hrs
 
+# current datetime
+my_date = datetime.datetime.now() 
 
+# previous 24 hrs
 prev_24hrs = previous_24hrs()
 
 
-
-
-def data_metrics(ticker, start_date, end_date, interval):
+def data_metrics(ticker, start_date, end_date, time_interval):
         
-    ''' measure metrics over a given timeframe.
-        Merge back to 1min data to calculate outcome'''
+    ''' 
+    Measure metrics over a given timeframe.
+
+        RSI = Relative Strength Index
+        OB/OS = RSI < 30 OR > 70
+
+    Merge back to 1min data to calculate outcome.
+    '''
     
     #1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo
     
@@ -100,7 +108,7 @@ def data_metrics(ticker, start_date, end_date, interval):
     data = yf.download(tickers = ticker,
                        start = start_date, 
                        end = end_date, 
-                       interval = interval
+                       interval = time_interval
                        ).reset_index()
     
     data = data.rename(columns = {'Adj Close' : 'Adj_Close'})
@@ -116,12 +124,13 @@ def data_metrics(ticker, start_date, end_date, interval):
     #data[interval + '_ROC_100'] = talib.ROC(data['Adj Close'].values, timeperiod = 100).round(1)
 
     # rsi
-    data[interval + '_RSI'] = talib.RSI(data['Adj_Close'].values, timeperiod = 14)
+    data[time_interval + '_RSI'] = talib.RSI(data['Adj_Close'].values, timeperiod = 14)
   
     # overbought/oversold for given timeframe
-    data[interval + '_OB_OS'] = np.where(data.iloc[:,-1] <= 30, "OS", 
-                                np.where(data.iloc[:,-1] >= 70, "OB", np.NaN      
-                                ))
+    data[time_interval + '_OB_OS'] = np.where(data.iloc[:,-1] <= 30, "OS", 
+                                     np.where(data.iloc[:,-1] >= 70, "OB", np.NaN      
+                                     )
+                                     )
     
     # drop data to be replace with 1min data
     #data = data.drop(['Open','High','Low','Close','Adj Close','Volume'], axis = 1)
@@ -129,14 +138,28 @@ def data_metrics(ticker, start_date, end_date, interval):
     # merge 1 min and given time interval
     #df = One_min.merge(data, how = 'left', on = ['Datetime'])
     
-
     return data
 
 
-#df_out = data_metrics('EURUSD=X', '2022-10-06', '2022-10-07', '5m')
-#df_out = data_metrics('EURUSD=X', prev_24hrs, my_date, '5m')
+my_date2 = datetime.datetime.now(pytz.timezone('Etc/GMT-10'))
+prev_12hrs = datetime.datetime.now(pytz.timezone('Etc/GMT+12'))
+prev_24hrs2 = my_date2 - datetime.timedelta(hours = 24, minutes = 0)
 
-#print(df_out[0:60])
+
+df_out = data_metrics('EURUSD=X', prev_24hrs, my_date, '1m')
+
+df_out2 = data_metrics('GBPUSD=X', prev_24hrs2, my_date2, '1m')
+
+
+
+print(prev_24hrs)
+print(my_date)
+print(prev_24hrs2)
+print(my_date2)
+
+print(df_out)
+print(df_out2)
+
 
 def getHigherHighs(data, order = 1, K = 2):
     
@@ -375,7 +398,7 @@ def plot():
 #response = requests.get('https://api.covid19api.com/summary')
 #covid_data = pd.json_normalize(response.json())
 
-#google_password = 'ategvrxmlaurbqgj'
+google_password = 'ategvrxmlaurbqgj'
 
 
 def send_tradeNotification(send_to, subject, df):
